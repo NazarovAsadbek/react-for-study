@@ -1,15 +1,29 @@
-import React from "react";
+import React, {useEffect} from "react";
 import TodoList from "./Todo/TodoList";
 import Context from "./context";
-import AddTodo from "./Todo/AddTodo";
+import Loader from "./Loader";
+import Modal from "./Modal/Modal";
+
+const AddTodo = React.lazy(() => new Promise(resolve => {
+    setTimeout(() => {
+        resolve(import('./Todo/AddTodo'))
+    }, 3000)
+}))
 
 function App() {
-    const [todos, setTodos] = React.useState([
-        {id: 1, completed: false, title: 'Купить хлеб'},
-        {id: 2, completed: true, title: 'Купить масло'},
-        {id: 3, completed: false, title: 'Купить молоко'},
-        {id: 4, completed: false, title: 'Купить морожное'},
-    ])
+    const [todos, setTodos] = React.useState([])
+    const [loading, setLoading] = React.useState(true)
+
+    useEffect(() => {
+        fetch('https://jsonplaceholder.typicode.com/todos?_limit=7')
+            .then(response => response.json())
+            .then(todos => {
+                setTimeout(() => {
+                    setTodos(todos)
+                    setLoading(false)
+                }, 2000)
+            })
+    }, [])
 
     function toggleTodo(id) {
         setTodos(
@@ -38,8 +52,20 @@ function App() {
         <Context.Provider value={{removeTodo}}>
             <div className="wrapper">
                 <h1>React tutorial</h1>
-                <AddTodo onCreate={addTodo}/>
-                {todos.length ? <TodoList todos={todos} onToggle={toggleTodo}/> : <p>No Todos!</p>}
+                <Modal />
+
+                <React.Suspense fallback={<p>React lazy loading</p>}>
+                    <AddTodo onCreate={addTodo}/>
+                </React.Suspense>
+                {loading && <Loader/>}
+                {
+                    todos.length ?
+                        (
+                            <TodoList todos={todos} onToggle={toggleTodo}/>
+                        ) : (
+                            loading ? null : <p>No Todos!</p>
+                        )
+                }
             </div>
         </Context.Provider>
     );
