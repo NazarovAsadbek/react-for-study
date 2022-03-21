@@ -1,6 +1,6 @@
 import React, {useEffect, useState} from "react";
 
-export default function UseCallbackItemsList({getItems}) {
+export default function UseCallbackItemsListComponent({getItems}) {
   const [items, setItems] = useState([])
 
   useEffect(() => {
